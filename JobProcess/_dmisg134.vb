@@ -560,7 +560,7 @@ Namespace SIS.DMISG
       Sql &= " select * from tdmisg134200 "
       Sql &= " where left(t_rcno,3) = 'REC' " 'Preorder Receipts
       Sql &= " and t_stat = 4 " 'Commentsubmitted
-      Sql &= " and t_date > convert(datetime,'" & Now.AddDays(-1 * SinceDays).ToString("dd/MM/yyyy") & "',103) " 'Receipts of after date
+      Sql &= " and t_adat > convert(datetime,'" & Now.AddDays(-1 * SinceDays).ToString("dd/MM/yyyy") & "',103) " 'Receipts of after date
       Dim Results As List(Of SIS.DMISG.dmisg134) = Nothing
       Using Con As SqlConnection = New SqlConnection(EDICommon.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
