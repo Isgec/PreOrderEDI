@@ -613,7 +613,7 @@ Namespace SIS.DMISG
     Public Shared Function dmisg134SelectCount(ByVal SearchState As Boolean, ByVal SearchText As String) As Integer
       Return _RecordCount
     End Function
-      'Select By ID One Record Filtered Overloaded GetByID
+    'Select By ID One Record Filtered Overloaded GetByID 
     Public Sub New(ByVal Reader As SqlDataReader)
       Try
         For Each pi As System.Reflection.PropertyInfo In Me.GetType.GetProperties

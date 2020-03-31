@@ -328,6 +328,7 @@ Namespace SIS.WF
             Header &= "</table>"
           End If
         End If
+
         Header &= "<br/>"
         Header &= "<br/>"
         Header &= "<p>You are requested to submit revised Offer as per comments submitted by ISGEC."
@@ -378,7 +379,7 @@ Namespace SIS.WF
         Dim Tos() As String = wf.SupplierEMailID.Split(",;".ToCharArray)
         For Each _to As String In Tos
           Try
-            x = New MailAddress(_to, "")
+            x = New MailAddress(_to.Trim, "")
           Catch ex As Exception
             aErr.Add("To=> " & ex.Message)
           End Try
@@ -388,7 +389,7 @@ Namespace SIS.WF
         Tos = wf.AdditionalEMailIDs.Split(",;".ToCharArray)
         For Each _to As String In Tos
           Try
-            x = New MailAddress(_to, "")
+            x = New MailAddress(_to.Trim, "")
           Catch ex As Exception
             aErr.Add("To=> " & ex.Message)
           End Try
@@ -489,7 +490,7 @@ Namespace SIS.WF
             Header &= "</table>"
           End If
         End If
-
+        tblStr = GetEnquiryHTML(wf)
         Header &= "<br/>"
         Header &= "<br/>"
         Header &= "<p>You are requested to submit revised Offer as per comments submitted by ISGEC."
@@ -513,6 +514,29 @@ Namespace SIS.WF
       End Try
       Return True
     End Function
-
+    Public Shared Function GetEnquiryHTML(enq As SIS.POW.powEnquiries) As String
+      Dim mRet As String = ""
+      mRet &= "<table style='border:solid 1pt darkgray;'>"
+      mRet &= "<tr>"
+      mRet &= "<td style='padding:4px;'><b>Supplier: "
+      mRet &= "</b></td>"
+      mRet &= "<td style='padding:4px;'>" & IIf(enq.SupplierID <> "", enq.VR_BusinessPartner3_BPName, enq.SupplierName)
+      mRet &= "</td>"
+      mRet &= "</tr>"
+      mRet &= "<tr>"
+      mRet &= "<td style='padding:4px;'><b>Item Description: "
+      mRet &= "</b></td>"
+      mRet &= "<td style='padding:4px;'>" & enq.EMailSubject
+      mRet &= "</td>"
+      mRet &= "</tr>"
+      mRet &= "<tr>"
+      mRet &= "<td style='padding:4px;'><b>Remarks: "
+      mRet &= "</b></td>"
+      mRet &= "<td style='padding:4px;'>" & enq.EMailBody
+      mRet &= "</td>"
+      mRet &= "</tr>"
+      mRet &= "</table>"
+      Return mRet
+    End Function
   End Class
 End Namespace
