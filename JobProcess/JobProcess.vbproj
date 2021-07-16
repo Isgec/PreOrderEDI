@@ -10,7 +10,8 @@
     <AssemblyName>JobProcess</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>JobProcess.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DocumentationFile>JobProcess.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -43,6 +46,9 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ejiVault">
+      <HintPath>..\..\ejiVault\ejiVault\bin\Debug\ejiVault.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
@@ -82,13 +88,10 @@
     <Compile Include="TimerSupport.vb" />
     <Compile Include="_dmisg134.vb" />
     <Compile Include="_dmisg135.vb" />
-    <Compile Include="_ediAFile.vb" />
     <Compile Include="_ntNotes.vb" />
     <Compile Include="_powEnquiries.vb" />
     <Compile Include="_powOffers.vb" />
     <Compile Include="_wfAlerts.vb" />
-    <Compile Include="_ediALib.vb" />
-    <Compile Include="_ediASeries.vb" />
     <Compile Include="_erpIDMSAlertSent.vb" />
     <Compile Include="_wfPreOrder.vb" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 ﻿Imports System.Windows.Forms
 Imports EDICommon
+Imports ejiVault
 Public Class JobProcessor
   Inherits TimerSupport
   Implements IDisposable
@@ -45,73 +46,112 @@ Public Class JobProcessor
       For Each dm134 As SIS.DMISG.dmisg134 In csReceipts
         I += 1
         msg(I & "=> " & dm134.t_rcno)
-        If dm134.t_wfid <= 0 Then
-          msg(" NOT created from Preorder Workflow.")
-          Continue For
-        End If
-        Dim tmp As SIS.ERP.erpIDMSAlertSent = SIS.ERP.erpIDMSAlertSent.erpIDMSAlertSentGetByID(dm134.t_rcno, dm134.t_revn)
-        If tmp IsNot Nothing Then
-          msg(" ====> alert already sent.")
-          Continue For
-        End If
         If dm134.t_wfid >= 10000 Then
-          Try
-            msg("Sending WebPOW Alert: " & dm134.t_rcno)
-            Dim Record As New SIS.POW.powOffers
-            With Record
-              .RecordTypeID = 5 'communication
-              .RecordRevision = "00"
-              .EMailSubject = "ISGEC Comments"
-              .SubmittedBy = dm134.t_user
-              .CreatedOn = Now
-              .StatusID = 6 'Comment, 7=>Cleared
-              .EMailBody = "Pl. find attached documents."
-              .EnquiryID = dm134.t_wfid
-              .TSID = dm134.t_pwfd
-              .ReceiptID = dm134.t_rcno
-              .ReceiptRevision = dm134.t_revn
-              .EvaluatedBy = dm134.t_appr
-              Try
-                .EValuatedOn = dm134.t_adat
-              Catch ex As Exception
-                .EValuatedOn = Now
-              End Try
-              .SubmittedByBuyer = True
-              .ForSupplier = False
-            End With
-            Record = SIS.POW.powOffers.InsertData(Record)
-            'Copy Commented Attachments
-            Dim comments As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.GetLikeFiles("IDMSEVALUATOR_200", dm134.t_rcno & "_" & dm134.t_revn & "_")
-            For Each cmt As SIS.EDI.ediAFile In comments
-              cmt.t_hndl = Record.AthHandle
-              cmt.t_indx = Record.AthIndex
-              SIS.EDI.ediAFile.InsertData(cmt)
-            Next
-            If SIS.WF.wfAlerts.WebPOWAlert(dm134) Then
-              tmp = New SIS.ERP.erpIDMSAlertSent
-              tmp.ReceiptNo = dm134.t_rcno
-              tmp.RevisionNo = dm134.t_revn
-              tmp.MailSentOn = Now
-              SIS.ERP.erpIDMSAlertSent.InsertData(tmp)
-              msg("Alert Sent: " & dm134.t_rcno)
+          If dm134.t_stat = 5 Then
+            'Technically cleared
+            Dim tmp As SIS.POW.powOffers = SIS.POW.powOffers.powOffersGetByReceiptRevision(dm134.t_rcno, dm134.t_revn)
+            If tmp IsNot Nothing Then
+              With tmp
+                .ERPStatusID = 5 'Technically Cleared
+                .EvaluatedBy = dm134.t_appr
+                Try
+                  .EValuatedOn = dm134.t_adat
+                Catch ex As Exception
+                  .EValuatedOn = Now
+                End Try
+              End With
+              tmp = SIS.POW.powOffers.UpdateData(tmp)
             End If
-          Catch ex As Exception
-            msg(ex.Message)
-          End Try
+          Else
+            'Comment Submitted
+            Dim tmp As SIS.ERP.erpIDMSAlertSent = SIS.ERP.erpIDMSAlertSent.erpIDMSAlertSentGetByID(dm134.t_rcno, dm134.t_revn)
+            If tmp IsNot Nothing Then
+              msg(" ====> alert already sent.")
+              Continue For
+            End If
+            Try
+              msg("Sending WebPOW Alert: " & dm134.t_rcno)
+              Dim Record As New SIS.POW.powOffers
+              With Record
+                .RecordTypeID = 5 'communication
+                .RecordRevision = "00"
+                .EMailSubject = "ISGEC Comments"
+                .SubmittedBy = dm134.t_user
+                .CreatedOn = Now
+                .StatusID = 6 'Comment, 7=>Cleared
+                .EMailBody = "Pl. find attached documents."
+                .EnquiryID = dm134.t_wfid
+                .TSID = dm134.t_pwfd
+                .ReceiptID = dm134.t_rcno
+                .ReceiptRevision = dm134.t_revn
+                .EvaluatedBy = dm134.t_appr
+                Try
+                  .EValuatedOn = dm134.t_adat
+                Catch ex As Exception
+                  .EValuatedOn = Now
+                End Try
+                .SubmittedByBuyer = True
+                .ForSupplier = False
+              End With
+              Record = SIS.POW.powOffers.InsertData(Record)
+              'Copy Commented Attachments
+              Dim comments As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleLikeIndex("IDMSEVALUATOR_200", dm134.t_rcno & "_" & dm134.t_revn & "_")
+              For Each cmt As EJI.ediAFile In comments
+                cmt.t_hndl = Record.AthHandle
+                cmt.t_indx = Record.AthIndex
+                EJI.ediAFile.InsertData(cmt)
+              Next
+              If SIS.WF.wfAlerts.WebPOWAlert(dm134) Then
+                tmp = New SIS.ERP.erpIDMSAlertSent
+                tmp.ReceiptNo = dm134.t_rcno
+                tmp.RevisionNo = dm134.t_revn
+                tmp.MailSentOn = Now
+                SIS.ERP.erpIDMSAlertSent.InsertData(tmp)
+                msg("Alert Sent: " & dm134.t_rcno)
+              End If
+            Catch ex As Exception
+              msg(ex.Message)
+            End Try
+          End If
         Else
-          Try
-            msg("Sending Alert: " & dm134.t_rcno)
-            If SIS.WF.wfAlerts.Alert(dm134) Then
-              tmp = New SIS.ERP.erpIDMSAlertSent
-              tmp.ReceiptNo = dm134.t_rcno
-              tmp.RevisionNo = dm134.t_revn
-              tmp.MailSentOn = Now
-              SIS.ERP.erpIDMSAlertSent.InsertData(tmp)
-              msg("Alert Sent: " & dm134.t_rcno)
+          If dm134.t_stat = 4 Then
+            'comment Submitted
+            Dim tmp As SIS.ERP.erpIDMSAlertSent = SIS.ERP.erpIDMSAlertSent.erpIDMSAlertSentGetByID(dm134.t_rcno, dm134.t_revn)
+            If tmp IsNot Nothing Then
+              msg(" ====> alert already sent.")
+              Continue For
             End If
-          Catch ex As Exception
-            msg(ex.Message)
-          End Try
+            Try
+              msg("Sending Alert: " & dm134.t_rcno)
+              If SIS.WF.wfAlerts.Alert(dm134) Then
+                tmp = New SIS.ERP.erpIDMSAlertSent
+                tmp.ReceiptNo = dm134.t_rcno
+                tmp.RevisionNo = dm134.t_revn
+                tmp.MailSentOn = Now
+                SIS.ERP.erpIDMSAlertSent.InsertData(tmp)
+                msg("Alert Sent: " & dm134.t_rcno)
+              End If
+            Catch ex As Exception
+              msg(ex.Message)
+            End Try
+          Else
+            'Technically Cleared
+            'Nothing to be done as receipt is not In Joomla
+            'Though Trying to get record in Joomla, which will be "Nothing"
+            Dim tmp As SIS.POW.powOffers = SIS.POW.powOffers.powOffersGetByReceiptRevision(dm134.t_rcno, dm134.t_revn)
+            If tmp IsNot Nothing Then
+              With tmp
+                .ERPStatusID = 5 'Technically Cleared
+                .EvaluatedBy = dm134.t_appr
+                Try
+                  .EValuatedOn = dm134.t_adat
+                Catch ex As Exception
+                  .EValuatedOn = Now
+                End Try
+              End With
+              tmp = SIS.POW.powOffers.UpdateData(tmp)
+            End If
+          End If
         End If
         If IsStopping Then
           Exit For
@@ -135,17 +175,24 @@ Public Class JobProcessor
     EDICommon.DBCommon.BaaNLive = jpConfig.BaaNLive
     EDICommon.DBCommon.JoomlaLive = jpConfig.JoomlaLive
     SIS.WF.wfAlerts.Testing = jpConfig.Testing
+    EJI.DBCommon.BaaNLive = jpConfig.BaaNLive
+    EJI.DBCommon.JoomlaLive = jpConfig.JoomlaLive
+    EJI.DBCommon.ERPCompany = jpConfig.ISGECVaultCompany
+    EJI.DBCommon.IsLocalISGECVault = jpConfig.IsLocalISGECVault
+    EJI.DBCommon.ISGECVaultIP = jpConfig.ISGECVaultIP
 
-    Dim tmp As SIS.EDI.ediALib = SIS.EDI.ediALib.GetActiveLibrary
-    LibraryPath = "\\192.9.200.146\" & tmp.t_path
+
+    Dim tmp As EJI.ediALib = EJI.ediALib.GetActiveLibrary
+    LibraryPath = tmp.LibraryPath
     LibraryID = tmp.t_lbcd
-    msg("Connecting to remote attachment library.")
-
-    If ConnectToNetworkFunctions.connectToNetwork(LibraryPath, "X:", "administrator", "Indian@12345") Then
-      msg("Remote connected.")
-      RemoteLibraryConnected = True
-    Else
-      msg("Failed to connect Remote Library.")
+    If Not jpConfig.IsLocalISGECVault Then
+      msg("Connecting to remote attachment library.")
+      If EJI.ediALib.ConnectISGECVault(tmp) Then
+        msg("Remote connected.")
+        RemoteLibraryConnected = True
+      Else
+        msg("Failed to connect Remote Library.")
+      End If
     End If
 
     RaiseEvent JobStarted()

@@ -31,6 +31,7 @@ Namespace SIS.POW
     Private _POW_OfferStates4_Description As String = ""
     Private _POW_RecordTypes5_Description As String = ""
     Private _POW_TechnicalSpecifications6_TSDescription As String = ""
+    Public Property ERPStatusID As String = ""
     Public Property ForSupplier() As Boolean
       Get
         Return _ForSupplier
@@ -364,6 +365,25 @@ Namespace SIS.POW
         Return TSID & "_" & EnquiryID & "_" & RecordID
       End Get
     End Property
+    Public Shared Function powOffersGetByReceiptRevision(ByVal ReceiptID As String, ByVal ReceiptRevision As String) As SIS.POW.powOffers
+      Dim Results As SIS.POW.powOffers = Nothing
+      Using Con As SqlConnection = New SqlConnection(EDICommon.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.StoredProcedure
+          Cmd.CommandText = "sppow_LG_OffersSelectByReceiptRevision"
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ReceiptID", SqlDbType.NVarChar, 9, ReceiptID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ReceiptRevision", SqlDbType.NVarChar, 5, ReceiptRevision)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NVarChar, 9, "")
+          Con.Open()
+          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
+          If Reader.Read() Then
+            Results = New SIS.POW.powOffers(Reader)
+          End If
+          Reader.Close()
+        End Using
+      End Using
+      Return Results
+    End Function
     Public Shared Function InsertData(ByVal Record As SIS.POW.powOffers) As SIS.POW.powOffers
       Using Con As SqlConnection = New SqlConnection(EDICommon.DBCommon.GetConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
@@ -387,6 +407,7 @@ Namespace SIS.POW
           EDICommon.DBCommon.AddDBParameter(Cmd, "@AcknowledgedOn", SqlDbType.DateTime, 21, IIf(Record.AcknowledgedOn = "", Convert.DBNull, Record.AcknowledgedOn))
           EDICommon.DBCommon.AddDBParameter(Cmd, "@ForSupplier", SqlDbType.Bit, 3, Record.ForSupplier)
           EDICommon.DBCommon.AddDBParameter(Cmd, "@CreatedOn", SqlDbType.DateTime, 21, IIf(Record.CreatedOn = "", Convert.DBNull, Record.CreatedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ERPStatusID", SqlDbType.Int, 11, IIf(Record.ERPStatusID = "", Convert.DBNull, Record.ERPStatusID))
           Cmd.Parameters.Add("@Return_TSID", SqlDbType.Int, 11)
           Cmd.Parameters("@Return_TSID").Direction = ParameterDirection.Output
           Cmd.Parameters.Add("@Return_EnquiryID", SqlDbType.Int, 11)
@@ -398,6 +419,41 @@ Namespace SIS.POW
           Record.TSID = Cmd.Parameters("@Return_TSID").Value
           Record.EnquiryID = Cmd.Parameters("@Return_EnquiryID").Value
           Record.RecordID = Cmd.Parameters("@Return_RecordID").Value
+        End Using
+      End Using
+      Return Record
+    End Function
+    Public Shared Function UpdateData(ByVal Record As SIS.POW.powOffers) As SIS.POW.powOffers
+      Using Con As SqlConnection = New SqlConnection(EDICommon.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.StoredProcedure
+          Cmd.CommandText = "sppowOffersUpdate"
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@Original_RecordID", SqlDbType.Int, 11, Record.RecordID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@Original_EnquiryID", SqlDbType.Int, 11, Record.EnquiryID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@Original_TSID", SqlDbType.Int, 11, Record.TSID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@RecordTypeID", SqlDbType.Int, 11, IIf(Record.RecordTypeID = "", Convert.DBNull, Record.RecordTypeID))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@RecordRevision", SqlDbType.NVarChar, 6, IIf(Record.RecordRevision = "", Convert.DBNull, Record.RecordRevision))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@EMailSubject", SqlDbType.NVarChar, 101, IIf(Record.EMailSubject = "", Convert.DBNull, Record.EMailSubject))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@SubmittedBy", SqlDbType.NVarChar, 9, IIf(Record.SubmittedBy = "", Convert.DBNull, Record.SubmittedBy))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@SubmittedOn", SqlDbType.DateTime, 21, IIf(Record.SubmittedOn = "", Convert.DBNull, Record.SubmittedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@StatusID", SqlDbType.Int, 11, IIf(Record.StatusID = "", Convert.DBNull, Record.StatusID))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@EMailBody", SqlDbType.NVarChar, 4001, IIf(Record.EMailBody = "", Convert.DBNull, Record.EMailBody))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@EvaluatedBy", SqlDbType.NVarChar, 9, IIf(Record.EvaluatedBy = "", Convert.DBNull, Record.EvaluatedBy))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@EnquiryID", SqlDbType.Int, 11, Record.EnquiryID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@TSID", SqlDbType.Int, 11, Record.TSID)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@DistributedOn", SqlDbType.DateTime, 21, IIf(Record.DistributedOn = "", Convert.DBNull, Record.DistributedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ReceiptID", SqlDbType.NVarChar, 10, IIf(Record.ReceiptID = "", Convert.DBNull, Record.ReceiptID))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ReceiptRevision", SqlDbType.NVarChar, 6, IIf(Record.ReceiptRevision = "", Convert.DBNull, Record.ReceiptRevision))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@SubmittedByBuyer", SqlDbType.Bit, 3, Record.SubmittedByBuyer)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@EValuatedOn", SqlDbType.DateTime, 21, IIf(Record.EValuatedOn = "", Convert.DBNull, Record.EValuatedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@AcknowledgedOn", SqlDbType.DateTime, 21, IIf(Record.AcknowledgedOn = "", Convert.DBNull, Record.AcknowledgedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ForSupplier", SqlDbType.Bit, 3, Record.ForSupplier)
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@CreatedOn", SqlDbType.DateTime, 21, IIf(Record.CreatedOn = "", Convert.DBNull, Record.CreatedOn))
+          EDICommon.DBCommon.AddDBParameter(Cmd, "@ERPStatusID", SqlDbType.Int, 11, IIf(Record.ERPStatusID = "", Convert.DBNull, Record.ERPStatusID))
+          Cmd.Parameters.Add("@RowCount", SqlDbType.Int)
+          Cmd.Parameters("@RowCount").Direction = ParameterDirection.Output
+          Con.Open()
+          Cmd.ExecuteNonQuery()
         End Using
       End Using
       Return Record

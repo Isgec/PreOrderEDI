@@ -12,60 +12,64 @@ Public Class ConfigFile
   Public Property Testing As Boolean = False
   Public Property Interval As Long = 1000
   Public Property SinceDays As Integer = 5
+  Public Property IsLocalISGECVault As Boolean = False
+  Public Property ISGECVaultIP As String = ""
+  Public Property ISGECVaultCompany As String = ""
+
   'Derived Property
   Public Property StartupPath As String = ""
   Public Property JobPathWorking As String = ""
   Public Property SerializedAt As String = ""
-  Public Shared Function GetFile(ByVal FilePath As String) As ConfigFile
-    Dim tmp As ConfigFile = Nothing
-    If IO.File.Exists(FilePath) Then
-      Dim rd As XmlReader = Nothing
-      Try
-        tmp = New ConfigFile
-        rd = XmlReader.Create(FilePath)
-        While rd.Read
-          If rd.NodeType = XmlNodeType.Element Then
+  'Public Shared Function GetFile(ByVal FilePath As String) As ConfigFile
+  '  Dim tmp As ConfigFile = Nothing
+  '  If IO.File.Exists(FilePath) Then
+  '    Dim rd As XmlReader = Nothing
+  '    Try
+  '      tmp = New ConfigFile
+  '      rd = XmlReader.Create(FilePath)
+  '      While rd.Read
+  '        If rd.NodeType = XmlNodeType.Element Then
 
-            Select Case rd.Name
-              Case "SinceDays"
-                Try
-                  rd.Read()
-                  tmp.SinceDays = rd.Value
-                Catch ex As Exception
-                End Try
-              Case "Interval"
-                Try
-                  rd.Read()
-                  tmp.Interval = rd.Value
-                Catch ex As Exception
-                End Try
-              Case "BaaNLive"
-                Try
-                  rd.Read()
-                  tmp.BaaNLive = Convert.ToBoolean(rd.Value.Trim)
-                Catch ex As Exception
-                End Try
-              Case "JoomlaLive"
-                Try
-                  rd.Read()
-                  tmp.JoomlaLive = Convert.ToBoolean(rd.Value.Trim)
-                Catch ex As Exception
-                End Try
-              Case "Testing"
-                Try
-                  rd.Read()
-                  tmp.Testing = Convert.ToBoolean(rd.Value.Trim)
-                Catch ex As Exception
-                End Try
-            End Select
-          End If
-        End While
-        rd.Close()
-      Catch ex As Exception
-      End Try
-    End If
-    Return tmp
-  End Function
+  '          Select Case rd.Name
+  '            Case "SinceDays"
+  '              Try
+  '                rd.Read()
+  '                tmp.SinceDays = rd.Value
+  '              Catch ex As Exception
+  '              End Try
+  '            Case "Interval"
+  '              Try
+  '                rd.Read()
+  '                tmp.Interval = rd.Value
+  '              Catch ex As Exception
+  '              End Try
+  '            Case "BaaNLive"
+  '              Try
+  '                rd.Read()
+  '                tmp.BaaNLive = Convert.ToBoolean(rd.Value.Trim)
+  '              Catch ex As Exception
+  '              End Try
+  '            Case "JoomlaLive"
+  '              Try
+  '                rd.Read()
+  '                tmp.JoomlaLive = Convert.ToBoolean(rd.Value.Trim)
+  '              Catch ex As Exception
+  '              End Try
+  '            Case "Testing"
+  '              Try
+  '                rd.Read()
+  '                tmp.Testing = Convert.ToBoolean(rd.Value.Trim)
+  '              Catch ex As Exception
+  '              End Try
+  '          End Select
+  '        End If
+  '      End While
+  '      rd.Close()
+  '    Catch ex As Exception
+  '    End Try
+  '  End If
+  '  Return tmp
+  'End Function
   Public Shared Function Serialize(ByVal jpConfig As ConfigFile, ByVal SerializeAt As String) As ConfigFile
     jpConfig.SerializedAt = SerializeAt
     Dim oSrz As XmlSerializer = New XmlSerializer(jpConfig.GetType)

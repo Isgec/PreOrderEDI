@@ -1,8 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Settings>
+<ConfigFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Interval>60000</Interval>
   <BaaNLive>True</BaaNLive>
   <JoomlaLive>True</JoomlaLive>
   <Testing>False</Testing>
   <SinceDays>15</SinceDays>
-</Settings>
+  <IsLocalISGECVault>false</IsLocalISGECVault>
+  <ISGECVaultIP>perk01</ISGECVaultIP>
+  <ISGECVaultCompany>200</ISGECVaultCompany>
+</ConfigFile>
